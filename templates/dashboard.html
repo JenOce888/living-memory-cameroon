@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<h2>Descriptive statistics</h2>
+<p class="page-desc">
+  An automatic analysis of all data collected so far.
+  Charts update every time you open this page.
+</p>
+
+<div id="loading" class="loading">Loading statistics…</div>
+
+<div id="dashboard" class="hidden">
+  <!-- Summary numbers at the top -->
+  <div class="stats-row" id="summary-row"></div>
+
+  <!-- Age statistics in text form -->
+  <div id="age-stats" class="info-box hidden">
+    <strong>Witnesses' age:</strong>
+    average <span id="age-mean">—</span> years old,
+    youngest <span id="age-min">—</span>,
+    oldest <span id="age-max">—</span>.
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Witnesses by region</h3>
+      <canvas id="chart-regions"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Testimonies by historical period</h3>
+      <canvas id="chart-periods"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Oral histories by category</h3>
+      <canvas id="chart-oral-categories"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Native languages represented</h3>
+      <canvas id="chart-languages"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Ethnic groups</h3>
+      <canvas id="chart-ethnicities"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Medicinal plants by region</h3>
+      <canvas id="chart-plants"></canvas>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Chart.js library for drawing charts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// Color palette matching our app's design
+const COLORS = ['#1D9E75','#534AB7','#D85A30','#BA7517','#D4537E','#378ADD','#639922','#888780','#0F6E56','#993C1D'];
+
+/**
+ * Creates a Chart.js bar or pie chart inside a canvas element.
+ * @param {string} canvasId - the id of the <canvas> element
+ * @param {string} type     - 'bar' or 'pie'
+ * @param {object} dataObj  - an object like { "Centre": 5, "West": 3 }
+ * @param {string} label    - label shown in the chart legend
+ */
+function drawChart(canvasId, type, dataObj, label) {
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+
+  const labels = Object.keys(dataObj);
+  const values = Object.values(dataObj);
+
+  if (labels.length === 0) {
+    canvas.parentElement.innerHTML += '<p class="empty" style="font-size:0.85rem">No data yet.</p>';
+    canvas.remove();
+    return;
+  }
+
+  new Chart(canvas, {
+    type: type,
+    data: {
+      labels: labels,
+      datasets: [{
+        label:           label,
+        data:            values,
+        backgroundColor: COLORS.slice(0, labels.length),
+        borderWidth:     0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: type === 'pie' }
+      },
+      scales: type === 'bar' ? {
+        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+      } : {}
+    }
+  });
+}
+
+/**
+ * Fetches statistics from the API, then builds the dashboard.
+ */
+async function loadDashboard() {
+  try {
+    const response = await fetch('/api/stats');
+    const stats    = await response.json();
+
+    // Hide loading, show dashboard
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('dashboard').classList.remove('hidden');
+
+    // ── Summary numbers ──
+    document.getElementById('summary-row').innerHTML = `
+      <div class="stat-card">
+        <span class="stat-num">${stats.nb_persons || 0}</span>
+        <span class="stat-label">Witnesses</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${stats.nb_testimonies || 0}</span>
+        <span class="stat-label">Testimonies</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${stats.nb_oral_stories || 0}</span>
+        <span class="stat-label">Oral stories</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-num">${stats.nb_plants || 0}</span>
+        <span class="stat-label">Plants</span>
+      </div>
+    `;
+
+    // ── Age stats ──
+    if (stats.age) {
+      document.getElementById('age-stats').classList.remove('hidden');
+      document.getElementById('age-mean').textContent = stats.age.mean;
+      document.getElementById('age-min').textContent  = stats.age.min;
+      document.getElementById('age-max').textContent  = stats.age.max;
+    }
+
+    // ── Charts ──
+    if (stats.by_region)           drawChart('chart-regions',          'bar', stats.by_region,           'Witnesses');
+    if (stats.testimonies_by_period) drawChart('chart-periods',         'pie', stats.testimonies_by_period,'Testimonies');
+    if (stats.oral_by_category)    drawChart('chart-oral-categories',  'pie', stats.oral_by_category,    'Stories');
+    if (stats.by_language)         drawChart('chart-languages',        'bar', stats.by_language,         'Speakers');
+    if (stats.by_ethnic_group)     drawChart('chart-ethnicities',      'bar', stats.by_ethnic_group,     'People');
+    if (stats.plants_by_region)    drawChart('chart-plants',           'bar', stats.plants_by_region,    'Plants');
+
+  } catch (err) {
+    document.getElementById('loading').textContent = 'Error loading statistics. Please refresh the page.';
+  }
+}
+
+// Run when the page loads
+loadDashboard();
+</script>
+{% endblock %}

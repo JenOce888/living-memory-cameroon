@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Living Memory of Cameroon{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="/" class="nav-brand">Living Memory of Cameroon</a>
+    <div class="nav-links">
+      <!-- Collect dropdown -->
+      <div class="nav-dropdown">
+        <span class="nav-item">Collect ▾</span>
+        <div class="dropdown-menu">
+          <a href="/collect-testimony">Historical testimony</a>
+          <a href="/collect-oral-history">Oral history (myths, proverbs…)</a>
+          <a href="/collect-plant">Medicinal plant</a>
+        </div>
+      </div>
+      <a href="/browse">Browse</a>
+      <a href="/dashboard">Statistics</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

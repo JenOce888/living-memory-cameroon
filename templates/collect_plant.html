@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}Collect a medicinal plant{% endblock %}
+
+{% block content %}
+<h2>Record a medicinal plant</h2>
+<p class="page-desc">
+  Use this form to document a plant used in traditional medicine.
+  Provide as much detail as possible — local names and preparation methods are especially valuable.
+</p>
+
+<form id="form-plant" enctype="multipart/form-data">
+
+  <fieldset>
+    <legend>Plant identification</legend>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="local_name">Local name *</label>
+        <input type="text" id="local_name" name="local_name" required
+               placeholder="Name in the local language">
+      </div>
+      <div class="form-group">
+        <label for="french_name">French name</label>
+        <input type="text" id="french_name" name="french_name">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="scientific_name">Scientific name (if known)</label>
+        <input type="text" id="scientific_name" name="scientific_name"
+               placeholder="e.g. Moringa oleifera">
+      </div>
+      <div class="form-group">
+        <label for="botanical_family">Botanical family</label>
+        <input type="text" id="botanical_family" name="botanical_family">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="usage_region">Region where this plant is used</label>
+        <select id="usage_region" name="usage_region">
+          <option value="">-- Select --</option>
+          <option>Adamaoua</option><option>Centre</option><option>East</option>
+          <option>Far North</option><option>Littoral</option><option>North</option>
+          <option>North West</option><option>West</option><option>South</option><option>South West</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="part_used">Part of the plant used</label>
+        <input type="text" id="part_used" name="part_used"
+               placeholder="e.g. leaves, roots, bark, seeds, fruit…">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="description">General description</label>
+      <textarea id="description" name="description" rows="3"
+                placeholder="Physical appearance, habitat, how to recognize it in the wild…"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="photo">Photo of the plant (optional)</label>
+      <input type="file" id="photo" name="photo" accept="image/*">
+      <small>A clear photo of the leaves, flowers, or whole plant is very helpful.</small>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Medicinal usage (from the elder's knowledge)</legend>
+    <p class="fieldset-note">
+      Fill this section only if an elder described a specific use.
+      You will need their Person ID — found on the testimony receipt after saving them.
+    </p>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="person_id">Elder's Person ID</label>
+        <input type="number" id="person_id" name="person_id" placeholder="e.g. 3">
+      </div>
+      <div class="form-group">
+        <label for="disease_treated">Disease or condition treated</label>
+        <input type="text" id="disease_treated" name="disease_treated"
+               placeholder="e.g. malaria, fever, diabetes, wounds…">
+      </div>
+    </div>
+    <div class="form-group">
+      <label for="preparation">How to prepare the remedy</label>
+      <textarea id="preparation" name="preparation" rows="4"
+                placeholder="Step-by-step: boil the leaves for 10 minutes, drink twice a day…"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="cultural_context">Cultural context of use</label>
+      <textarea id="cultural_context" name="cultural_context" rows="3"
+                placeholder="Any rituals, beliefs, seasons, or ceremonies associated with this plant…"></textarea>
+    </div>
+    <div class="form-group">
+      <label for="precautions">Precautions / contraindications</label>
+      <textarea id="precautions" name="precautions" rows="2"
+                placeholder="Dangerous if pregnant? Cannot be combined with other plants?"></textarea>
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-green">Save plant</button>
+  </div>
+  <div id="msg" class="message hidden"></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('form-plant').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type=submit]');
+  const msg = document.getElementById('msg');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  msg.className = 'message hidden';
+
+  try {
+    const res    = await fetch('/api/plant', { method: 'POST', body: new FormData(this) });
+    const result = await res.json();
+    if (result.success) {
+      msg.className   = 'message success';
+      msg.textContent = `Plant saved! Plant ID: ${result.plant_id}`;
+      this.reset();
+    } else { throw new Error(); }
+  } catch {
+    msg.className   = 'message error';
+    msg.textContent = 'An error occurred. Please try again.';
+  }
+  btn.disabled    = false;
+  btn.textContent = 'Save plant';
+});
+</script>
+{% endblock %}

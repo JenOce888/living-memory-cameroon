@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% block title %}Collect an oral history{% endblock %}
+
+{% block content %}
+<h2>Record an oral history</h2>
+<p class="page-desc">
+  Use this form to capture a myth, legend, proverb, folktale, or cultural tradition
+  that an elder knows. Unlike a personal testimony, this is knowledge passed down through generations.
+</p>
+
+<form id="form-oral" enctype="multipart/form-data">
+
+  <!-- ── SECTION 1: Who is the elder? ── -->
+  <fieldset>
+    <legend>About the narrator</legend>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="last_name">Last name *</label>
+        <input type="text" id="last_name" name="last_name" required>
+      </div>
+      <div class="form-group">
+        <label for="first_name">First name</label>
+        <input type="text" id="first_name" name="first_name">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="approx_age">Approximate age</label>
+        <input type="number" id="approx_age" name="approx_age" min="40" max="120">
+      </div>
+      <div class="form-group">
+        <label for="ethnic_group">Ethnic group</label>
+        <input type="text" id="ethnic_group" name="ethnic_group">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="region">Region</label>
+        <select id="region" name="region">
+          <option value="">-- Select --</option>
+          <option>Adamaoua</option><option>Centre</option><option>East</option>
+          <option>Far North</option><option>Littoral</option><option>North</option>
+          <option>North West</option><option>West</option><option>South</option><option>South West</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="city_village">City / Village</label>
+        <input type="text" id="city_village" name="city_village">
+      </div>
+    </div>
+    <div class="form-group checkbox">
+      <input type="checkbox" id="consent_given" name="consent_given" required>
+      <label for="consent_given">The narrator consents to this story being archived.</label>
+    </div>
+  </fieldset>
+
+  <!-- ── SECTION 2: The oral history ── -->
+  <fieldset>
+    <legend>The story / tradition</legend>
+
+    <div class="form-group">
+      <label for="category">Type of oral tradition *</label>
+      <select id="category" name="category" required>
+        <option value="">-- Select a type --</option>
+        <option value="myth">Myth (explains the origin of something)</option>
+        <option value="legend">Legend (story with historical roots)</option>
+        <option value="proverb">Proverb (short wisdom saying)</option>
+        <option value="folktale">Folktale (entertaining story, often with animals)</option>
+        <option value="tradition">Cultural tradition or ritual</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label for="title">Title *</label>
+      <input type="text" id="title" name="title" required
+             placeholder="e.g. Why the spider is cunning, The first man who saw fire…">
+    </div>
+
+    <div class="form-group">
+      <label for="language">Language of the story</label>
+      <input type="text" id="language" name="language"
+             placeholder="e.g. Ewondo, Bamiléké, Fulfulde, French…">
+    </div>
+
+    <div class="form-group">
+      <label for="original_text">The story in its original language</label>
+      <textarea id="original_text" name="original_text" rows="8"
+                placeholder="Write the story, proverb, or tradition as the elder told it…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="translation_fr">French translation (if original is in local language)</label>
+      <textarea id="translation_fr" name="translation_fr" rows="8"
+                placeholder="Traduction française du récit…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="context">Context and meaning</label>
+      <textarea id="context" name="context" rows="4"
+                placeholder="When is this story told? What does it teach? Who has the right to tell it?
+On what occasion? Is it only for adults, children, initiates?"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="audio">Audio recording of the narrator (optional)</label>
+      <input type="file" id="audio" name="audio" accept="audio/*">
+      <small>Recording the elder in their own voice and language is very valuable.</small>
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-secondary">Save oral history</button>
+  </div>
+  <div id="msg" class="message hidden"></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('form-oral').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const btn = this.querySelector('button[type=submit]');
+  const msg = document.getElementById('msg');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  msg.className = 'message hidden';
+
+  try {
+    const res    = await fetch('/api/oral-history', { method: 'POST', body: new FormData(this) });
+    const result = await res.json();
+    if (result.success) {
+      msg.className   = 'message success';
+      msg.textContent = 'Oral history saved successfully!';
+      this.reset();
+    } else { throw new Error(); }
+  } catch {
+    msg.className   = 'message error';
+    msg.textContent = 'An error occurred. Please try again.';
+  }
+  btn.disabled    = false;
+  btn.textContent = 'Save oral history';
+});
+</script>
+{% endblock %}

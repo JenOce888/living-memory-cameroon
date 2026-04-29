@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Home — Living Memory of Cameroon{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <h1>Living Memory of Cameroon</h1>
+  <p class="hero-sub">
+    An archive of oral history, historical testimonies, and traditional botanical knowledge
+    collected from Cameroonian elders.
+  </p>
+
+  <!-- Counters showing what's already in the database -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-num">{{ nb_persons }}</span>
+      <span class="stat-label">Witnesses interviewed</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ nb_testimonies }}</span>
+      <span class="stat-label">Historical testimonies</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ nb_oral_stories }}</span>
+      <span class="stat-label">Oral stories &amp; proverbs</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ nb_plants }}</span>
+      <span class="stat-label">Medicinal plants</span>
+    </div>
+  </div>
+
+  <!-- Call-to-action buttons -->
+  <div class="cta-row">
+    <a href="/collect-testimony"    class="btn btn-primary">Add a testimony</a>
+    <a href="/collect-oral-history" class="btn btn-secondary">Add an oral story</a>
+    <a href="/collect-plant"        class="btn btn-green">Add a plant</a>
+    <a href="/browse"               class="btn btn-outline">Browse the archive</a>
+  </div>
+</section>
+
+<!-- Short explanation of the project -->
+<section class="about">
+  <h2>About this project</h2>
+  <p>
+    This application was built to preserve knowledge that lives only in the memory of elders.
+    It collects three types of data:
+  </p>
+  <div class="about-cards">
+    <div class="about-card">
+      <h3>Historical testimonies</h3>
+      <p>Personal accounts of events the elders witnessed: independence, reunification,
+         armed conflicts, social changes.</p>
+    </div>
+    <div class="about-card">
+      <h3>Oral traditions</h3>
+      <p>Myths, legends, proverbs, folktales, and cultural rituals transmitted across
+         generations through the spoken word.</p>
+    </div>
+    <div class="about-card">
+      <h3>Medicinal plants</h3>
+      <p>Traditional botanical knowledge: plant names in local languages, diseases treated,
+         preparation methods, and cultural context.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

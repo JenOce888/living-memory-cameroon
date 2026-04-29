@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Collect a testimony{% endblock %}
+
+{% block content %}
+<h2>Record a historical testimony</h2>
+<p class="page-desc">
+  Use this form after interviewing an elder about a historical event they personally witnessed.
+  Fill in what they told you, and optionally upload an audio recording.
+</p>
+
+<form id="form-testimony" enctype="multipart/form-data">
+
+  <!-- ── SECTION 1: Who is the elder? ── -->
+  <fieldset>
+    <legend>About the witness</legend>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="last_name">Last name *</label>
+        <input type="text" id="last_name" name="last_name" required>
+      </div>
+      <div class="form-group">
+        <label for="first_name">First name</label>
+        <input type="text" id="first_name" name="first_name">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="approx_age">Approximate age</label>
+        <input type="number" id="approx_age" name="approx_age" min="40" max="120" placeholder="e.g. 78">
+      </div>
+      <div class="form-group">
+        <label for="ethnic_group">Ethnic group</label>
+        <input type="text" id="ethnic_group" name="ethnic_group" placeholder="e.g. Bamiléké, Beti, Fulani…">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="region">Region</label>
+        <select id="region" name="region">
+          <option value="">-- Select --</option>
+          <option>Adamaoua</option><option>Centre</option><option>East</option>
+          <option>Far North</option><option>Littoral</option><option>North</option>
+          <option>North West</option><option>West</option><option>South</option><option>South West</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="city_village">City / Village</label>
+        <input type="text" id="city_village" name="city_village">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="native_language">Native language</label>
+      <input type="text" id="native_language" name="native_language" placeholder="e.g. Ewondo, Fulfulde, Bamiléké…">
+    </div>
+
+    <div class="form-group checkbox">
+      <input type="checkbox" id="consent_given" name="consent_given" required>
+      <label for="consent_given">
+        The witness consents to their testimony being archived and shared for research purposes.
+      </label>
+    </div>
+  </fieldset>
+
+  <!-- ── SECTION 2: The testimony itself ── -->
+  <fieldset>
+    <legend>The testimony</legend>
+
+    <div class="form-group">
+      <label for="title">Title / Subject *</label>
+      <input type="text" id="title" name="title" required
+             placeholder="e.g. How I experienced Cameroon's independence in my village">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label for="historical_period">Historical period</label>
+        <select id="historical_period" name="historical_period">
+          <option value="">-- Select --</option>
+          <option>Colonial era (before 1960)</option>
+          <option>Independence (1960)</option>
+          <option>Reunification (1961)</option>
+          <option>1970s–1980s</option>
+          <option>1990s</option>
+          <option>2000s and after</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="related_event">Related event</label>
+        <input type="text" id="related_event" name="related_event"
+               placeholder="e.g. UPC uprising, Ahidjo era, multiparty politics…">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="testimony_language">Language of the testimony</label>
+      <input type="text" id="testimony_language" name="testimony_language"
+             placeholder="e.g. French, Ewondo, Fulfulde…">
+    </div>
+
+    <div class="form-group">
+      <label for="transcription">Transcription of the testimony</label>
+      <textarea id="transcription" name="transcription" rows="10"
+                placeholder="Write here exactly what the witness said, in their own words…"></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="audio">Audio recording (optional)</label>
+      <input type="file" id="audio" name="audio" accept="audio/*">
+      <small>Accepted formats: MP3, WAV, M4A, OGG — max 100 MB</small>
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Save testimony</button>
+  </div>
+
+  <!-- This div shows success or error messages after submission -->
+  <div id="msg" class="message hidden"></div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// When the form is submitted, send the data to our API without reloading the page
+document.getElementById('form-testimony').addEventListener('submit', async function(e) {
+  e.preventDefault();  // stop the default browser form submission
+
+  const btn = this.querySelector('button[type=submit]');
+  const msg = document.getElementById('msg');
+
+  btn.disabled    = true;
+  btn.textContent = 'Saving…';
+  msg.className   = 'message hidden';
+
+  const formData = new FormData(this);  // automatically collects all form fields + files
+
+  try {
+    const response = await fetch('/api/testimony', { method: 'POST', body: formData });
+    const result   = await response.json();
+
+    if (result.success) {
+      msg.className   = 'message success';
+      msg.textContent = 'Testimony saved successfully! You can add another one below.';
+      this.reset();  // clear the form
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (err) {
+    msg.className   = 'message error';
+    msg.textContent = 'An error occurred. Please try again.';
+  }
+
+  btn.disabled    = false;
+  btn.textContent = 'Save testimony';
+});
+</script>
+{% endblock %}

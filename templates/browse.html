@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+{% block title %}Browse the archive{% endblock %}
+
+{% block content %}
+<h2>Browse the archive</h2>
+
+<!-- Search bar — works across all types -->
+<div class="search-bar">
+  <input type="text" id="search-input" placeholder="Search by keyword…">
+  <select id="search-type">
+    <option value="testimony">Testimonies</option>
+    <option value="oral">Oral histories</option>
+    <option value="plant">Plants</option>
+  </select>
+  <button onclick="doSearch()" class="btn btn-primary">Search</button>
+</div>
+<div id="search-results"></div>
+
+<!-- Tab navigation -->
+<div class="tabs">
+  <a href="/browse?tab=testimonies"    class="tab {{ 'active' if tab == 'testimonies' }}">
+    Historical testimonies ({{ testimonies|length }})
+  </a>
+  <a href="/browse?tab=oral"           class="tab {{ 'active' if tab == 'oral' }}">
+    Oral histories ({{ oral_histories|length }})
+  </a>
+  <a href="/browse?tab=plants"         class="tab {{ 'active' if tab == 'plants' }}">
+    Medicinal plants ({{ plants|length }})
+  </a>
+</div>
+
+<!-- ── TAB: Testimonies ── -->
+{% if tab == 'testimonies' %}
+<div class="cards-grid">
+  {% for t in testimonies %}
+  <div class="card">
+    <div class="card-header">
+      <h3>{{ t.title }}</h3>
+      <span class="badge">{{ t.historical_period or 'Period unknown' }}</span>
+    </div>
+    <div class="card-body">
+      {% if t.person %}
+      <p class="meta">
+        {{ t.person.last_name }} {{ t.person.first_name or '' }}
+        {% if t.person.region %} — {{ t.person.region }}{% endif %}
+        {% if t.person.approx_age %} — ~{{ t.person.approx_age }} years old{% endif %}
+      </p>
+      {% endif %}
+      {% if t.related_event %}
+      <p class="meta">Event: {{ t.related_event }}</p>
+      {% endif %}
+      {% if t.transcription %}
+      <p class="excerpt">{{ t.transcription[:250] }}{% if t.transcription|length > 250 %}…{% endif %}</p>
+      {% endif %}
+      {% if t.audio_url %}
+      <audio controls src="{{ t.audio_url }}" style="width:100%; margin-top:8px"></audio>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      <span>{{ t.record_date }}</span>
+      {% if t.testimony_language %}
+      <span class="tag">{{ t.testimony_language }}</span>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="empty">No testimonies recorded yet. <a href="/collect-testimony">Start collecting.</a></p>
+  {% endfor %}
+</div>
+
+<!-- ── TAB: Oral histories ── -->
+{% elif tab == 'oral' %}
+<div class="cards-grid">
+  {% for s in oral_histories %}
+  <div class="card">
+    <div class="card-header">
+      <h3>{{ s.title }}</h3>
+      <span class="badge badge-purple">{{ s.category | capitalize }}</span>
+    </div>
+    <div class="card-body">
+      {% if s.person %}
+      <p class="meta">
+        Narrator: {{ s.person.last_name }} {{ s.person.first_name or '' }}
+        {% if s.ethnic_group %} — {{ s.ethnic_group }}{% endif %}
+      </p>
+      {% endif %}
+      {% if s.language %}
+      <p class="meta">Language: {{ s.language }}</p>
+      {% endif %}
+      {% if s.original_text %}
+      <p class="excerpt">{{ s.original_text[:250] }}{% if s.original_text|length > 250 %}…{% endif %}</p>
+      {% endif %}
+      {% if s.translation_fr %}
+      <details style="margin-top:8px">
+        <summary style="cursor:pointer; font-size:0.85rem; color:var(--text-muted)">French translation</summary>
+        <p class="excerpt" style="margin-top:6px">{{ s.translation_fr[:300] }}…</p>
+      </details>
+      {% endif %}
+      {% if s.audio_url %}
+      <audio controls src="{{ s.audio_url }}" style="width:100%; margin-top:8px"></audio>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      <span>{{ s.record_date }}</span>
+      {% if s.region %}<span class="tag">{{ s.region }}</span>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="empty">No oral histories recorded yet. <a href="/collect-oral-history">Start collecting.</a></p>
+  {% endfor %}
+</div>
+
+<!-- ── TAB: Plants ── -->
+{% elif tab == 'plants' %}
+<div class="cards-grid">
+  {% for p in plants %}
+  <div class="card">
+    {% if p.photo_url %}
+    <img src="{{ p.photo_url }}" alt="{{ p.local_name }}" class="card-img">
+    {% endif %}
+    <div class="card-header">
+      <h3>{{ p.local_name }}</h3>
+      {% if p.french_name %}<span class="badge badge-green">{{ p.french_name }}</span>{% endif %}
+    </div>
+    <div class="card-body">
+      {% if p.scientific_name %}<p class="meta"><em>{{ p.scientific_name }}</em></p>{% endif %}
+      {% if p.part_used %}<p class="meta">Part used: {{ p.part_used }}</p>{% endif %}
+      {% if p.usage_region %}<p class="meta">Region: {{ p.usage_region }}</p>{% endif %}
+      {% if p.description %}
+      <p class="excerpt">{{ p.description[:500] }}{% if p.description|length > 500 %}…{% endif %}</p>
+      {% endif %}
+      {% if p.usages %}
+      <div class="usages">
+        <strong style="font-size:0.85rem">Known uses:</strong>
+        {% for u in p.usages %}
+        <div class="usage-item">
+          <span class="tag">{{ u.disease_treated }}</span>
+          {% if u.preparation %}<p class="excerpt" style="margin-top:4px">{{ u.preparation[:150] }}…</p>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="card-footer">
+      {% if p.usage_region %}<span class="tag">{{ p.usage_region }}</span>{% endif %}
+    </div>
+  </div>
+  {% else %}
+  <p class="empty">No plants recorded yet. <a href="/collect-plant">Start collecting.</a></p>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function doSearch() {
+  const q    = document.getElementById('search-input').value.trim();
+  const type = document.getElementById('search-type').value;
+  const div  = document.getElementById('search-results');
+
+  if (!q) { div.innerHTML = ''; return; }
+
+  div.innerHTML = '<p class="meta">Searching…</p>';
+
+  const res  = await fetch(`/api/search?q=${encodeURIComponent(q)}&type=${type}`);
+  const data = await res.json();
+
+  if (!data.length) {
+    div.innerHTML = '<p class="empty">No results found for that query.</p>';
+    return;
+  }
+
+  div.innerHTML = `<p class="meta" style="margin-bottom:1rem">${data.length} result(s) for "${q}":</p>` +
+    data.map(item => `
+      <div class="card" style="margin-bottom:1rem">
+        <div class="card-header">
+          <h3>${item.title || item.local_name || 'Untitled'}</h3>
+          <span class="badge">${item.historical_period || item.category || item.usage_region || ''}</span>
+        </div>
+        <div class="card-body">
+          <p class="excerpt">${(item.transcription || item.original_text || item.description || '').substring(0,200)}…</p>
+          ${item.audio_url ? `<audio controls src="${item.audio_url}" style="width:100%;margin-top:8px"></audio>` : ''}
+          ${item.photo_url ? `<img src="${item.photo_url}" style="max-width:100%;border-radius:8px;margin-top:8px">` : ''}
+        </div>
+      </div>`
+    ).join('');
+}
+
+// Allow pressing Enter to search
+document.getElementById('search-input').addEventListener('keyup', e => {
+  if (e.key === 'Enter') doSearch();
+});
+</script>
+{% endblock %}
