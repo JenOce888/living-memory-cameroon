@@ -1,20 +1,21 @@
 # Model: Plant (a medicinal plant known by the elder)
 from . import db
+from datetime import date
 
 class Plant(db.Model):
     __tablename__ = 'plants'
 
     id                  = db.Column(db.Integer, primary_key=True)
-    local_name          = db.Column(db.String(200), nullable=False)  # name in local language
+    local_name          = db.Column(db.String(200), nullable=False)
     french_name         = db.Column(db.String(200))
     scientific_name     = db.Column(db.String(200))
     botanical_family    = db.Column(db.String(100))
     usage_region        = db.Column(db.String(100))
-    part_used           = db.Column(db.String(200))   # leaves, roots, bark, seeds...
-    photo_url           = db.Column(db.String(500))   # photo on Cloudinary
+    part_used           = db.Column(db.String(200))
+    photo_url           = db.Column(db.String(500))
     description         = db.Column(db.Text)
+    record_date         = db.Column(db.Date, default=date.today)
 
-    # One plant can have many medicinal usages described by different people
     usages = db.relationship('MedicinalUsage', backref='plant', lazy=True)
 
     def to_dict(self):
